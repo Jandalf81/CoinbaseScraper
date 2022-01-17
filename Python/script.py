@@ -7,10 +7,11 @@ def __main__():
 
     apiKey = config.get('Coinbase', 'apiKey')
     apiSecret = config.get('Coinbase', 'apiSecret')
+    FIATcurrency = config.get('Coinbase', 'FIATcurrency')
 
     myCoinbase = Coinbase(apiKey, apiSecret)
     
-    print(myCoinbase.getAccounts())
+    print(myCoinbase.getAccounts(FIATcurrency))
 
 
 __main__()

@@ -5,14 +5,15 @@ class Coinbase:
         self.apiSecret = apiSecret
         self.apiVersion = '2021-09-30'
 
-    def getAccounts(self):
+    def getAccounts(self, FIATcurrency):
         import requests
         import time
         import hmac
         import hashlib
+        import json
         
         timestamp = str(int(time.time()))
-        path = '/v2/accounts'
+        path = '/v2/accounts?limit=250&order=asc'
         message = timestamp + 'GET' + path
         print(message)
 
@@ -21,21 +22,28 @@ class Coinbase:
 
         r = requests.get(self.apiUrl + path, headers = {'CB-ACCESS-KEY': self.apiKey, 'CB-ACCESS-SIGN': signature, 'CB-ACCESS-TIMESTAMP': timestamp, 'CB-VERSION': self.apiVersion})
         print(r.status_code)
-        print(r.text)
+        #print(r.text)
+
+        j = r.json()
+        print(j['pagination']['next_uri'])
+
+        for account in j['data']:
+            #print(account['currency']['name'] + ': ' + account['currency']['code'] + ': ' + str(account['balance']['amount']))
+
+            if (float(account['balance']['amount']) > 0):
+                unitValue = self.getPriceSpot(account['currency']['code'], FIATcurrency)
+                print(timestamp + ': ' + account['currency']['name'] + ': ' + account['currency']['code'] + ': ' + str(account['balance']['amount']) + ': ' + unitValue)
 
 
-    def getPriceSpot(self, currency):
+    def getPriceSpot(self, currency, FIATcurrency):
         import requests
 
-        print('getPriceSpot')
-        print(currency)
+        r = requests.get(self.apiUrl + '/v2/prices/' + currency + '-' + FIATcurrency + '/spot')
+        j = r.json()
 
-        r = requests.get(self.apiUrl + 'prices/BTC-EUR/spot')
-        print(r.status_code)
-        print(r.text)
+        return j['data']['amount']
 
         
-
 class Account:
     def __init__(self):
         self.currency = ''

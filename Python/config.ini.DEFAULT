@@ -1,3 +1,4 @@
 [Coinbase]
 apiKey=YOURKEYHERE
 apiSecret=YOURSECRETHERE
+FIATcurrency=USD
