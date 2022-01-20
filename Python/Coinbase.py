@@ -5,35 +5,42 @@ class Coinbase:
         self.apiSecret = apiSecret
         self.apiVersion = '2021-09-30'
 
-    def getAccounts(self, FIATcurrency):
+    def getAccountsSnapshot(self, FIATcurrency):
         import requests
         import time
         import hmac
         import hashlib
-        import json
-        
-        timestamp = str(int(time.time()))
+
+        mySnapshot = Snapshot(str(int(time.time())))
+
         path = '/v2/accounts?limit=250&order=asc'
-        message = timestamp + 'GET' + path
-        print(message)
 
-        signature = hmac.new(bytes(self.apiSecret, 'latin-1'), bytes(message, 'latin-1'), hashlib.sha256).hexdigest()
-        print(signature)
+        while (path != None):        
+            timestamp = str(int(time.time()))
+            message = timestamp + 'GET' + path
+            signature = hmac.new(bytes(self.apiSecret, 'latin-1'), bytes(message, 'latin-1'), hashlib.sha256).hexdigest()
 
-        r = requests.get(self.apiUrl + path, headers = {'CB-ACCESS-KEY': self.apiKey, 'CB-ACCESS-SIGN': signature, 'CB-ACCESS-TIMESTAMP': timestamp, 'CB-VERSION': self.apiVersion})
-        print(r.status_code)
-        #print(r.text)
+            r = requests.get(self.apiUrl + path, headers = {'CB-ACCESS-KEY': self.apiKey, 'CB-ACCESS-SIGN': signature, 'CB-ACCESS-TIMESTAMP': timestamp, 'CB-VERSION': self.apiVersion})
+            
+            if (r.status_code == 200):
+                j = r.json()
+                path = j['pagination']['next_uri']
 
-        j = r.json()
-        print(j['pagination']['next_uri'])
+                for account in j['data']:
+                    if (float(account['balance']['amount']) > 0):
+                        unitValue = self.getPriceSpot(account['currency']['code'], FIATcurrency)
+                        print(timestamp + ': ' + account['currency']['name'] + ': ' + account['currency']['code'] + ': ' + str(account['balance']['amount']) + ': ' + unitValue)
 
-        for account in j['data']:
-            #print(account['currency']['name'] + ': ' + account['currency']['code'] + ': ' + str(account['balance']['amount']))
+                        myAccount = Account()
+                        myAccount.code = account['currency']['code']
+                        myAccount.name = account['currency']['name']
+                        myAccount.units = float(account['balance']['amount'])
+                        myAccount.unitPrice = float(unitValue)
+                        myAccount.worth = myAccount.units * myAccount.unitPrice
 
-            if (float(account['balance']['amount']) > 0):
-                unitValue = self.getPriceSpot(account['currency']['code'], FIATcurrency)
-                print(timestamp + ': ' + account['currency']['name'] + ': ' + account['currency']['code'] + ': ' + str(account['balance']['amount']) + ': ' + unitValue)
-
+                        mySnapshot.accounts.append(myAccount)
+                        mySnapshot.sum += myAccount.worth
+        return mySnapshot
 
     def getPriceSpot(self, currency, FIATcurrency):
         import requests
@@ -44,7 +51,22 @@ class Coinbase:
         return j['data']['amount']
 
         
+class Snapshot:
+    def __init__(self):
+        self.timestamp = ''
+        self.accounts = []
+        self.sum = 0.0
+
+    def __init__(self, timestamp):
+        self.timestamp = timestamp
+        self.accounts = []
+        self.sum = 0.0
+
+
 class Account:
     def __init__(self):
-        self.currency = ''
-        self.value = 0.0
+        self.code = ''
+        self.name = ''
+        self.units = 0.0
+        self.unitPrice = 0.0
+        self.worth = 0.0
