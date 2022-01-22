@@ -1,2 +1,4 @@
 */__pycache__/*
 Python/config.ini
+db.sqlite
+.gitignore

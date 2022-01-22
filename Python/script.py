@@ -11,7 +11,10 @@ def __main__():
 
     myCoinbase = Coinbase(apiKey, apiSecret)
     
-    print(myCoinbase.getAccounts(FIATcurrency))
+    mySnapshot = myCoinbase.getAccountsSnapshot(FIATcurrency)
+
+    mySnapshot.saveToDB('/home/pi/CoinbaseScraper/db.sqlite')
+
 
 
 __main__()
