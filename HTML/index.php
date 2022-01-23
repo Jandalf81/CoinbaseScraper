@@ -5,10 +5,29 @@
     # define path to database
     $db = new SQLite3('/home/pi/CoinbaseScraper/db.sqlite');
 
+    class Currency {
+        private $code;
+        private $name;
+
+        function __construct($code, $name) {
+            $this->code = $code;
+            $this->name = $name;
+        }
+
+        function get_code() {
+            return $this->code;
+        }
+
+        function get_name() {
+            return $this->name;
+        }
+    }
+
     # get list of all currencies for later use
+    $listCurrencies = [];
     $results = $db->query('SELECT * FROM currencies ORDER BY code');
     while ($row = $results->fetchArray()) {
-        $currencies[] = $row['code'];
+        $listCurrencies[] = new Currency($row['code'], $row['name']);
     }
 ?>
 <html lang="de">
@@ -39,12 +58,17 @@
                 data.addColumn('number', 'Value');
                 data.addRows([
 <?php
+    # get latest snapshot
     $results = $db->query('SELECT * FROM snapshots ORDER BY timestamp DESC LIMIT 1');
     while ($row = $results->fetchArray()) {
-        foreach($currencies as $currency) {
-            echo "\t\t\t\t\t['" . $currency . "', 'name', " . $row['units' . $currency] . ', ' . $row['unitPrice' . $currency] . ', ' . $row['sum' . $currency] . '],' . $rn;
+        $sum = $row['sum'];
+
+        # list values for each currency
+        foreach($listCurrencies as $currency) {
+            echo "\t\t\t\t\t['" . $currency->get_code() . "', '" . $currency->get_name() . "', " . $row['units' . $currency->get_code()] . ', ' . $row['unitPrice' . $currency->get_code()] . ', ' . $row['sum' . $currency->get_code()] . '],' . $rn;
         }
     }
+    echo "\t\t\t\t\t['SUM', '', , , " . $sum . '],' . $rn;
 ?>
                 ]);
 
@@ -75,19 +99,20 @@
     # begin SQL statement
     $sql = 'SELECT (timestamp * 1000) [timestamp], [sum]';
 
-    foreach ($currencies as $currency) {
+    foreach ($listCurrencies as $currency) {
         # extend definition of datatable
-        echo ", '" . $currency . "'";
+        echo ", '" . $currency->get_code() . "'";
 
         # extend SQL statement
-        $sql .= ', sum' . $currency . ' [' . $currency . ']';
+        $sql .= ', sum' . $currency->get_code() . ' [' . $currency->get_code() . ']';
     }
 
     # finalize definition of datatable
     echo '],' . $rn;
 
     # finalize SQL statement
-    $sql .= ' FROM snapshots ORDER BY timestamp';
+    # TODO make timeframe selectable
+    $sql .= ' FROM snapshots WHERE timestamp > ' . (time() - (60 * 60 * 24)) . ' ORDER BY timestamp';
 
     # query database
     $results = $db->query($sql);
@@ -96,8 +121,8 @@
         echo "\t\t\t\t\t[new Date(" . $row['timestamp'] . '), ' . $row['sum'];
 
         # add each currency
-        foreach($currencies as $currency) {
-            echo ', ' . $row[$currency];
+        foreach($listCurrencies as $currency) {
+            echo ', ' . $row[$currency->get_code()];
         }
 
         echo '],' . $rn;
@@ -142,16 +167,15 @@
 
                 // prepare formatter
                 var fCurrency = new google.visualization.NumberFormat({
-                    //fractionDigits: 5,
-                    //suffix: ' €',
-                    pattern: '#,###.##### €'
+                    fractionDigits: 5,
+                    suffix: ' €'
                 });
 
                 // format the SUM
                 fCurrency.format(data, 0);
 <?php
     # format each currency
-    foreach($currencies as $key => $currency) {
+    foreach($listCurrencies as $key => $currency) {
         echo "\t\t\t\tfCurrency.format(data, " . ($key + 1) . ');' . $rn;
     }
 ?>
