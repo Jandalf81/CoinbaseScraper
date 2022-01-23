@@ -2,3 +2,20 @@
     width: 100%;
     height: 800px;
 }
+
+.GCheaderRow {
+    background-color: #0099d4;
+    color: #ffffff;
+}
+
+.GCoddTableRow {
+    background-color: #b2e0f2;
+}
+
+.GChoverTableRow {
+    background-color: #7fccea;
+}
+
+.GCselectedTableRow {
+    background-color: #fccb8d;
+}

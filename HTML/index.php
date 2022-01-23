@@ -86,8 +86,22 @@
                 fCurrency.format(data, 3);
                 fCurrency.format(data, 4);
 
+                var options = {
+                    alternatingRowStyle: true,
+                    showRowNumber: true,
+                    width: '100%',
+                    cssClassNames: {
+                        headerRow: 'GCheaderRow',
+                        headerCell: 'GCheaderCell',
+                        oddTableRow: 'GCoddTableRow',
+                        tableRow: 'GCtableRow',
+                        hoverTableRow: 'GChoverTableRow',
+                        selectedTableRow: 'GCselectedTableRow',
+                    }
+                };
+
                 var table = new google.visualization.Table(document.getElementById('divAccountSnapshot'));
-                table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+                table.draw(data, options);
             }
 
             function drawAccountDevelopment() {
