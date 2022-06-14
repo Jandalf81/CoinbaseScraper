@@ -29,11 +29,17 @@
     while ($row = $results->fetchArray()) {
         $listCurrencies[] = new Currency($row['code'], $row['name']);
     }
+
+    if(isset($_POST['showPrevious'])) {
+        $showPrevious = $_POST['showPrevious'];
+    } else {
+        $showPrevious = '24h';
+    }
 ?>
 <html lang="de">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
 
         <title>CoinbaseScraper</title>
 
@@ -124,9 +130,31 @@
     # finalize definition of datatable
     echo '],' . $rn;
 
-    # finalize SQL statement
     # TODO make timeframe selectable
-    $sql .= ' FROM snapshots WHERE timestamp > ' . (time() - (60 * 60 * 24)) . ' ORDER BY timestamp';
+    switch ($showPrevious) {
+        case "1h":
+            $goBack = (60 * 60);
+            break;
+        case "24h":
+            $goBack = (24 * 60 * 60);
+            break;
+        case '7d':
+            $goBack = (7 * 24 * 60 * 60);
+            break;
+        case '28d':
+            $goBack = (28 * 24 * 60 * 60);
+            break;
+        case '1y':
+            $goBack = (365 * 24 * 60 * 60);
+            break;
+        case 'all':
+            $goBack = time();
+            break;
+    }
+    echo '<!-- $showPrevious: ' . $showPrevious . ', $goBack: ' . $goBack . ', time(): ' . time() . ' -->' . $rn;
+
+    # finalize SQL statement
+    $sql .= ' FROM snapshots WHERE timestamp > ' . (time() - $goBack) . ' ORDER BY timestamp';
 
     # query database
     $results = $db->query($sql);
@@ -202,6 +230,21 @@
     </head>
     <body>
         <div id="divAccountSnapshot" class="AccountSnapshot"></div>
+        <div>
+            <h1>Chart Settings</h1>
+            <form action="/CoinbaseScraper/index.php" method="POST">
+                <label for="showPrevious">Show previous</label>
+                <select id="showPrevious" name="showPrevious">
+                    <option value="1h"<?php if($showPrevious == "1h") {echo " selected";}; ?>>1h</option>
+                    <option value="24h"<?php if($showPrevious == "24h") {echo " selected";}; ?>>24h</option>
+                    <option value="7d"<?php if($showPrevious == "7d") {echo " selected";}; ?>>7d</option>
+                    <option value="28d"<?php if($showPrevious == "28d") {echo " selected";}; ?>>28d</option>
+                    <option value="1y"<?php if($showPrevious == "1y") {echo " selected";}; ?>>1y</option>
+                    <option value="all"<?php if($showPrevious == "all") {echo " selected";}; ?>>all</option>
+                </select><br />
+                <input type="submit" value="Submit">
+            </form>
+        </div>
         <div id="divAccountDevelopment" class="AccountDevelopment"></div>
     </body>
 </html>
