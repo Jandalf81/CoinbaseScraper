@@ -15,7 +15,7 @@ class Coinbase:
 
         path = '/v2/accounts?limit=250&order=asc'
 
-        while (path != None):        
+        while (path != ''):        
             timestamp = str(int(time.time()))
             message = timestamp + 'GET' + path
             signature = hmac.new(bytes(self.apiSecret, 'latin-1'), bytes(message, 'latin-1'), hashlib.sha256).hexdigest()
@@ -86,7 +86,7 @@ class Snapshot:
 
         for acc in self.accounts:
             # check if currency exists
-            sql = 'SELECT COUNT(*) FROM currencies WHERE code = "{code}" and name = "{name}"'.format(code = acc.code, name = acc.name)
+            sql = 'SELECT COUNT(*) FROM currencies WHERE code = "{code}" and UPPER(name) = "{name}"'.format(code = acc.code, name = acc.name.upper())
             cursor.execute(sql)
             result = cursor.fetchone()[0]
 
