@@ -15,10 +15,14 @@ class Coinbase:
 
         path = '/v2/accounts?limit=250&order=asc'
 
-        while (path != ''):        
+        while (path != None):        
             timestamp = str(int(time.time()))
             message = timestamp + 'GET' + path
-            signature = hmac.new(bytes(self.apiSecret, 'latin-1'), bytes(message, 'latin-1'), hashlib.sha256).hexdigest()
+            signature = hmac.new(
+                bytes(self.apiSecret, 'latin-1'), 
+                bytes(message, 'latin-1'), 
+                hashlib.sha256
+            ).hexdigest()
 
             r = requests.get(self.apiUrl + path, headers = {'CB-ACCESS-KEY': self.apiKey, 'CB-ACCESS-SIGN': signature, 'CB-ACCESS-TIMESTAMP': timestamp, 'CB-VERSION': self.apiVersion})
             

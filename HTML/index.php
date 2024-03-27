@@ -71,7 +71,13 @@
 
         # list values for each currency
         foreach($listCurrencies as $currency) {
-            echo "\t\t\t\t\t['" . $currency->get_code() . "', '" . $currency->get_name() . "', " . $row['units' . $currency->get_code()] . ', ' . $row['unitPrice' . $currency->get_code()] . ', ' . $row['sum' . $currency->get_code()] . '],' . $rn;
+            $myCode = $currency->get_code();
+            $myName = $currency->get_name();
+            $myUnits = $row['units' . $currency->get_code()] ?? 0.0;
+            $myUnitPrice = $row['unitPrice' . $currency->get_code()] ?? 0.0;
+            $mySum = $row['sum' . $currency->get_code()] ?? 0.0;
+
+            echo "\t\t\t\t\t['" . $myCode . "', '" . $myName . "', " . $myUnits . ', ' . $myUnitPrice . ', ' . $mySum . '],' . $rn;
         }
     }
     echo "\t\t\t\t\t['SUM', '', , , " . $sum . '],' . $rn;
@@ -79,7 +85,7 @@
                 ]);
 
                 var fCurrency = new google.visualization.NumberFormat({
-                    fractionDigits: 5,
+                    fractionDigits: 8,
                     suffix: ' €'
                 });
 
