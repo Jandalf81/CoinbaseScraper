@@ -170,7 +170,9 @@
 
         # add each currency
         foreach($listCurrencies as $currency) {
-            echo ', ' . $row[$currency->get_code()];
+            $myValue = $row[$currency->get_code()] ?? 0.0;
+
+            echo ', ' . $myValue;
         }
 
         echo '],' . $rn;
