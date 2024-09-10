@@ -17,10 +17,18 @@ Create a new mount point
 sudo mkdir /var/www/html/CoinbaseScraper
 ```
 
-Mount the HTML folder like so
-
+Mount the HTML automatically on each reboot
 ```
-sudo mount --bind /home/pi/CoinbaseScraper/HTML /var/www/html/CoinbaseScraper
+sudo crontab -e
+```
+then add the following line
+```
+@reboot sudo mount --bind /home/pi/CoinbaseScraper/HTML /var/www/html/CoinbaseScraper
+```
+
+Change permissions of the home folder, so lighthttpd can read it
+```
+chmod 755 /home/pi
 ```
 
 Enable some needed modules with lighthttpd
